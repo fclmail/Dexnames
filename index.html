@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEX PRICES</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: darkblue;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: fluorescentblue;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+        }
+
+        .container {
+            margin: 20px auto;
+            border: 2px solid fluorescentblue;
+            width: 90%;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid fluorescentblue;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #0a0a5b;
+        }
+    </style>
+    <script>
+        async function fetchDexData() {
+            try {
+                const dexResponse = await fetch('https://api.coingecko.com/api/v3/exchanges');
+                const dexData = await dexResponse.json();
+                const topDexes = dexData.slice(0, 20);
+
+                const dexTable = document.getElementById('dexTable');
+                dexTable.innerHTML = '';
+                topDexes.forEach((dex, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${index + 1}</td><td>${dex.name}</td>`;
+                    dexTable.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error fetching DEX data:', error);
+            }
+        }
+
+        async function fetchCryptoData() {
+            try {
+                const cryptoResponse = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd');
+                const cryptoData = await cryptoResponse.json();
+                const topCryptos = cryptoData.slice(0, 20);
+
+                const cryptoTable = document.getElementById('cryptoTable');
+                cryptoTable.innerHTML = '';
+                topCryptos.forEach((crypto, index) => {
+                    const priceChange = ((crypto.current_price - crypto.opening_price) / crypto.opening_price * 100).toFixed(2);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${crypto.name}</td>
+                        <td>${crypto.opening_price || 'N/A'}</td>
+                        <td>${crypto.current_price}</td>
+                        <td>${priceChange}%</td>
+                    `;
+                    cryptoTable.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error fetching cryptocurrency data:', error);
+            }
+        }
+
+        function updateData() {
+            fetchDexData();
+            fetchCryptoData();
+        }
+
+        setInterval(updateData, 2000);
+        window.onload = updateData;
+    </script>
+</head>
+<body>
+    <h1>DEX PRICES</h1>
+    <div class="container">
+        <h2>Top 20 Decentralized Exchanges</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>DEX Name</th>
+                </tr>
+            </thead>
+            <tbody id="dexTable"></tbody>
+        </table>
+    </div>
+    <div class="container">
+        <h2>Top 20 Cryptocurrencies</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cryptocurrency</th>
+                    <th>Start of Day Price</th>
+                    <th>Current Price</th>
+                    <th>Percentage Change</th>
+                </tr>
+            </thead>
+            <tbody id="cryptoTable"></tbody>
+        </table>
+    </div>
+</body>
+</html>
